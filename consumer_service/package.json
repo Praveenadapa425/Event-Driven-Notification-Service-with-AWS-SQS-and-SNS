@@ -1,0 +1,13 @@
+{
+  "name": "consumer-service",
+  "version": "1.0.0",
+  "description": "Decoupled Event Consumer Service",
+  "main": "app/index.js",
+  "scripts": {
+    "start": "node app/index.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.0.0",
+    "dotenv": "^16.0.0"
+  }
+}
