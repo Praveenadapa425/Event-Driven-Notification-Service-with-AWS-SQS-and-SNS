@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   localstack:
-    image: localstack/localstack:latest
+    image: localstack/localstack:3.4.0
     ports:
       - "4566:4566"
     environment:
@@ -10,7 +10,6 @@ services:
       - AWS_DEFAULT_REGION=us-east-1
     volumes:
       - ./localstack-setup:/etc/localstack/init/ready.d
-      - /var/run/docker.sock:/var/run/docker.sock
 
   publisher:
     build:
