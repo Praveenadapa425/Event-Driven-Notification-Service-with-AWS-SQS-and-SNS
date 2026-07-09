@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sns,sqs
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - ./localstack-setup:/etc/localstack/init/ready.d
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  publisher:
+    build:
+      context: ./publisher_service
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_ACCESS_KEY_ID=placeholder_key
+      - AWS_SECRET_ACCESS_KEY=placeholder_secret
+      - AWS_REGION=us-east-1
+      - SNS_TOPIC_ARN=arn:aws:sns:us-east-1:000000000000:notification-events
+      - SQS_QUEUE_URL=http://localstack:4566/000000000000/notification-queue
+      - PORT=8000
+    depends_on:
+      localstack:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8000/health', (res) => { if (res.statusCode === 200) process.exit(0); else process.exit(1); }).on('error', () => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  consumer:
+    build:
+      context: ./consumer_service
+      dockerfile: Dockerfile
+    environment:
+      - AWS_ACCESS_KEY_ID=placeholder_key
+      - AWS_SECRET_ACCESS_KEY=placeholder_secret
+      - AWS_REGION=us-east-1
+      - SNS_TOPIC_ARN=arn:aws:sns:us-east-1:000000000000:notification-events
+      - SQS_QUEUE_URL=http://localstack:4566/000000000000/notification-queue
+    depends_on:
+      localstack:
+        condition: service_started
